@@ -1,22 +1,22 @@
+#if canImport(VATextureKitMacroMacros)
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
 
-#if canImport(VATextureKitMacroMacros)
 import VATextureKitMacroMacros
 
 let testMacros: [String: Macro.Type] = [
     "Layout": NodeLayoutMacro.self,
     "DistinctLayout": NodeDistinctLayoutMacro.self,
+    "ScrollLayout": ScrollNodeLayoutMacro.self,
+    "DistinctScrollLayout": ScrollNodeDistinctLayoutMacro.self,
 ]
-#endif
 
 final class VATextureKitMacroTests: XCTestCase {
 
-    func testMacro() throws {
-        #if canImport(VATextureKitMacroMacros)
+    func test_layoutMacro() throws {
         let variableName = "someVariable"
         assertMacroExpansion(
             """
@@ -31,13 +31,26 @@ final class VATextureKitMacroTests: XCTestCase {
             """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
     }
 
-    func testMacroWithStringLiteral() throws {
-        #if canImport(VATextureKitMacroMacros)
+    func test_layoutScrollMacro() throws {
+        let variableName = "someVariable"
+        assertMacroExpansion(
+            """
+            @ScrollLayout var \(variableName) = false
+            """,
+            expandedSource: """
+            var \(variableName) = false {
+                didSet {
+                    scrollNode.setNeedsLayout()
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func test_distinctLayoutMacro() throws {
         let variableName = "someVariable"
         assertMacroExpansion(
             """
@@ -56,8 +69,27 @@ final class VATextureKitMacroTests: XCTestCase {
             """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+    }
+
+    func test_distinctScrollLayout() throws {
+        let variableName = "someVariable"
+        assertMacroExpansion(
+            """
+            @DistinctScrollLayout var \(variableName) = false
+            """,
+            expandedSource: """
+            var \(variableName) = false {
+                didSet {
+                    guard oldValue != \(variableName) else {
+                        return
+                    }
+
+                    scrollNode.setNeedsLayout()
+                }
+            }
+            """,
+            macros: testMacros
+        )
     }
 }
+#endif

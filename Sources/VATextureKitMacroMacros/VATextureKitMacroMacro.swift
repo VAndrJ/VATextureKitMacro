@@ -4,96 +4,106 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 
-public struct NodeLayoutMacro {}
+public struct NodeLayoutMacro: AccessorMacro {
 
-func diagnose<Context>(
-    node: AttributeSyntax,
-    context: Context,
-    message: DiagnosticProblemMessage
-) where Context: MacroExpansionContext {
-    let errorDiagnose = Diagnostic(
-        node: Syntax(node),
-        message: message
-    )
-    context.diagnose(errorDiagnose)
-}
-
-extension NodeLayoutMacro: AccessorMacro {
     public static func expansion<Context, Declaration>(
         of node: AttributeSyntax,
         providingAccessorsOf declaration: Declaration,
         in context: Context
     ) throws -> [AccessorDeclSyntax] where Context: MacroExpansionContext, Declaration: DeclSyntaxProtocol {
-        guard let varDecl = declaration.as(VariableDeclSyntax.self) else {
-            diagnose(node: node, context: context, message: .noDeclaration)
-
-            return []
-        }
-        guard varDecl.isVar else {
-            diagnose(node: node, context: context, message: .notVariable)
-
-            return []
-        }
-        guard varDecl.isInstance else {
-            diagnose(node: node, context: context, message: .notInstance)
-
-            return []
-        }
-        guard let binding = varDecl.bindings.first, binding.pattern.as(IdentifierPatternSyntax.self)?.identifier != nil else {
-            diagnose(node: node, context: context, message: .other)
-
-            return []
+        guard let varDecl = declaration.as(VariableDeclSyntax.self),
+              varDecl.isVar,
+              varDecl.isInstance,
+              let binding = varDecl.bindings.first,
+              binding.pattern.as(IdentifierPatternSyntax.self)?.identifier != nil else {
+            throw VATextureKitMacroError.notVariable
         }
 
         return [
-      """
-      didSet {
-          setNeedsLayout()
-      }
-      """,
+            AccessorDeclSyntax(accessorSpecifier: .keyword(.didSet)) {
+                "setNeedsLayout()"
+            },
         ]
     }
 }
 
-public struct NodeDistinctLayoutMacro {}
+public struct ScrollNodeLayoutMacro: AccessorMacro {
 
-extension NodeDistinctLayoutMacro: AccessorMacro {
     public static func expansion<Context, Declaration>(
         of node: AttributeSyntax,
         providingAccessorsOf declaration: Declaration,
         in context: Context
     ) throws -> [AccessorDeclSyntax] where Context: MacroExpansionContext, Declaration: DeclSyntaxProtocol {
-        guard let varDecl = declaration.as(VariableDeclSyntax.self) else {
-            diagnose(node: node, context: context, message: .noDeclaration)
-
-            return []
-        }
-        guard varDecl.isVar else {
-            diagnose(node: node, context: context, message: .notVariable)
-
-            return []
-        }
-        guard varDecl.isInstance else {
-            diagnose(node: node, context: context, message: .notInstance)
-
-            return []
-        }
-        guard let binding = varDecl.bindings.first, let identifier = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.trimmed else {
-            diagnose(node: node, context: context, message: .other)
-
-            return []
+        guard let varDecl = declaration.as(VariableDeclSyntax.self),
+              varDecl.isVar,
+              varDecl.isInstance,
+              let binding = varDecl.bindings.first,
+              binding.pattern.as(IdentifierPatternSyntax.self)?.identifier != nil else {
+            throw VATextureKitMacroError.notVariable
         }
 
         return [
-      """
-      didSet {
-          guard oldValue != \(identifier) else { 
-              return
-          }
+            AccessorDeclSyntax(accessorSpecifier: .keyword(.didSet)) {
+                "scrollNode.setNeedsLayout()"
+            },
+        ]
+    }
+}
 
-          setNeedsLayout()
-      }
-      """,
+public struct NodeDistinctLayoutMacro: AccessorMacro {
+
+    public static func expansion<Context, Declaration>(
+        of node: AttributeSyntax,
+        providingAccessorsOf declaration: Declaration,
+        in context: Context
+    ) throws -> [AccessorDeclSyntax] where Context: MacroExpansionContext, Declaration: DeclSyntaxProtocol {
+        guard let varDecl = declaration.as(VariableDeclSyntax.self),
+              varDecl.isVar,
+              varDecl.isInstance,
+              let binding = varDecl.bindings.first,
+              let identifier = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.trimmed else {
+            throw VATextureKitMacroError.notVariable
+        }
+
+        return [
+            AccessorDeclSyntax(accessorSpecifier: .keyword(.didSet)) {
+                """
+                    guard oldValue != \(identifier) else {
+                        return
+                    }
+
+                    setNeedsLayout()
+                """
+            }
+        ]
+    }
+}
+
+public struct ScrollNodeDistinctLayoutMacro: AccessorMacro {
+
+    public static func expansion<Context, Declaration>(
+        of node: AttributeSyntax,
+        providingAccessorsOf declaration: Declaration,
+        in context: Context
+    ) throws -> [AccessorDeclSyntax] where Context: MacroExpansionContext, Declaration: DeclSyntaxProtocol {
+        guard let varDecl = declaration.as(VariableDeclSyntax.self),
+              varDecl.isVar,
+              varDecl.isInstance,
+              let binding = varDecl.bindings.first,
+              let identifier = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier.trimmed else {
+            throw VATextureKitMacroError.notVariable
+        }
+
+        return [
+            AccessorDeclSyntax(accessorSpecifier: .keyword(.didSet)) {
+                """
+                    guard oldValue != \(identifier) else {
+                        return
+                    }
+
+                    scrollNode.setNeedsLayout()
+                """
+            }
         ]
     }
 }
@@ -106,15 +116,14 @@ extension VariableDeclSyntax {
     public var isInstance: Bool { !isClass && !isStatic }
 }
 
-enum DiagnosticProblemMessage: String, DiagnosticMessage {
-    case noDeclaration = "No declaration"
-    case notVariable = "Must be `var` declaration"
-    case notInstance = "Must be instance variable"
-    case other = "Binding error"
+public enum VATextureKitMacroError: Error, CustomStringConvertible {
+    case notVariable
 
-    var message: String { rawValue }
-    var diagnosticID: SwiftDiagnostics.MessageID { .init(domain: "VATextureKitMacro", id: rawValue) }
-    var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+    public var description: String {
+        switch self {
+        case .notVariable: "Must be `var` declaration"
+        }
+    }
 }
 
 @main
@@ -122,5 +131,7 @@ struct VATextureKitMacroPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         NodeLayoutMacro.self,
         NodeDistinctLayoutMacro.self,
+        ScrollNodeLayoutMacro.self,
+        ScrollNodeDistinctLayoutMacro.self,
     ]
 }
