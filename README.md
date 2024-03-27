@@ -47,3 +47,45 @@ var someVariable = false {
     }
 }
 ```
+
+
+### @ScrollLayout
+
+
+Triggers a layout update whenever the wrapped variable's value changes.
+
+
+```
+@ScrollLayout var someVariable = false
+
+// expands to
+
+var someVariable = false {
+    didSet {
+        scrollNode.setNeedsLayout()
+    }
+}
+```
+
+
+### @DistinctScrollLayout
+
+
+Triggers a layout update whenever the wrapped variable's value changes only if the new value is distinct from the old value.
+
+
+```
+@DistinctScrollLayout var someVariable = false
+
+// expands to
+
+var someVariable = false {
+    didSet {
+        guard oldValue != someVariable else {
+            return
+        }
+
+        scrollNode.setNeedsLayout()
+    }
+}
+```
