@@ -4,7 +4,6 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
-
 import VATextureKitMacroMacros
 
 let testMacros: [String: Macro.Type] = [
@@ -12,6 +11,7 @@ let testMacros: [String: Macro.Type] = [
     "DistinctLayout": NodeDistinctLayoutMacro.self,
     "ScrollLayout": ScrollNodeLayoutMacro.self,
     "DistinctScrollLayout": ScrollNodeDistinctLayoutMacro.self,
+    "DecodableDefaultCase": DecodableDefaultCase.self,
 ]
 
 final class VATextureKitMacroTests: XCTestCase {
@@ -33,6 +33,20 @@ final class VATextureKitMacroTests: XCTestCase {
         )
     }
 
+    func test_layoutMacro_faulure() throws {
+        let variableName = "someVariable"
+        assertMacroExpansion(
+            """
+            @Layout let \(variableName) = false
+            """,
+            expandedSource: """
+            let \(variableName) = false
+            """,
+            diagnostics: [DiagnosticSpec(message: VATextureKitMacroError.notVariable.description, line: 1, column: 1)],
+            macros: testMacros
+        )
+    }
+
     func test_layoutScrollMacro() throws {
         let variableName = "someVariable"
         assertMacroExpansion(
@@ -46,6 +60,20 @@ final class VATextureKitMacroTests: XCTestCase {
                 }
             }
             """,
+            macros: testMacros
+        )
+    }
+
+    func test_layoutScrollMacro_failure() throws {
+        let variableName = "someVariable"
+        assertMacroExpansion(
+            """
+            @ScrollLayout let \(variableName) = false
+            """,
+            expandedSource: """
+            let \(variableName) = false
+            """,
+            diagnostics: [DiagnosticSpec(message: VATextureKitMacroError.notVariable.description, line: 1, column: 1)],
             macros: testMacros
         )
     }
@@ -71,6 +99,20 @@ final class VATextureKitMacroTests: XCTestCase {
         )
     }
 
+    func test_distinctLayoutMacro_failure() throws {
+        let variableName = "someVariable"
+        assertMacroExpansion(
+            """
+            @DistinctLayout let \(variableName) = false
+            """,
+            expandedSource: """
+            let \(variableName) = false
+            """,
+            diagnostics: [DiagnosticSpec(message: VATextureKitMacroError.notVariable.description, line: 1, column: 1)],
+            macros: testMacros
+        )
+    }
+
     func test_distinctScrollLayout() throws {
         let variableName = "someVariable"
         assertMacroExpansion(
@@ -88,6 +130,20 @@ final class VATextureKitMacroTests: XCTestCase {
                 }
             }
             """,
+            macros: testMacros
+        )
+    }
+
+    func test_distinctScrollLayout_failure() throws {
+        let variableName = "someVariable"
+        assertMacroExpansion(
+            """
+            @DistinctScrollLayout let \(variableName) = false
+            """,
+            expandedSource: """
+            let \(variableName) = false
+            """,
+            diagnostics: [DiagnosticSpec(message: VATextureKitMacroError.notVariable.description, line: 1, column: 1)],
             macros: testMacros
         )
     }

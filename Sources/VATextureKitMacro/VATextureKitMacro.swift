@@ -9,3 +9,5 @@ public macro DistinctLayout() = #externalMacro(module: "VATextureKitMacroMacros"
 public macro ScrollLayout() = #externalMacro(module: "VATextureKitMacroMacros", type: "ScrollNodeLayoutMacro")
 @attached(accessor, names: named(didSet))
 public macro DistinctScrollLayout() = #externalMacro(module: "VATextureKitMacroMacros", type: "ScrollNodeDistinctLayoutMacro")
+@attached(extension, names: arbitrary)
+public macro DecodableDefaultCase() = #externalMacro(module: "VATextureKitMacroMacros", type: "DecodableDefaultCase")

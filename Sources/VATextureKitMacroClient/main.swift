@@ -9,3 +9,9 @@ func setNeedsLayout() {
 
 someVar = true
 someDistinctVar = true
+
+@DecodableDefaultCase
+enum SomeEnum: String, Codable {
+    case undefined
+    case first
+}

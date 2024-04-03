@@ -109,7 +109,6 @@ public struct ScrollNodeDistinctLayoutMacro: AccessorMacro {
 }
 
 extension VariableDeclSyntax {
-    public var isLet: Bool { bindingSpecifier.tokenKind == .keyword(.let) }
     public var isVar: Bool { bindingSpecifier.tokenKind == .keyword(.var) }
     public var isStatic: Bool { modifiers.contains { $0.name.tokenKind == .keyword(.static) } }
     public var isClass: Bool { modifiers.contains { $0.name.tokenKind == .keyword(.class) } }
@@ -118,10 +117,14 @@ extension VariableDeclSyntax {
 
 public enum VATextureKitMacroError: Error, CustomStringConvertible {
     case notVariable
+    case notEnum
+    case associatedValue
 
     public var description: String {
         switch self {
         case .notVariable: "Must be `var` declaration"
+        case .notEnum: "Must be `enum`"
+        case .associatedValue: "Must not have associated values"
         }
     }
 }
@@ -133,5 +136,6 @@ struct VATextureKitMacroPlugin: CompilerPlugin {
         NodeDistinctLayoutMacro.self,
         ScrollNodeLayoutMacro.self,
         ScrollNodeDistinctLayoutMacro.self,
+        DecodableDefaultCase.self,
     ]
 }
