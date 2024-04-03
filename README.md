@@ -88,4 +88,31 @@ var someVariable = false {
         scrollNode.setNeedsLayout()
     }
 }
+
+
+### @DecodableDefaultCase
+
+
+Adds an initializer that substitutes the first case as a default one if it fails to initialize with the given raw value.
+
+
+```
+@DecodableDefaultCase
+enum SomeEnum: String, Codable {
+    case undefined
+    case first
+}
+
+// expands to
+
+enum SomeEnum: String, Codable {
+    case undefined
+    case first
+}
+
+extension SomeEnum {
+    public init(from decoder: Decoder) throws {
+        self = try SomeEnum(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .undefined
+    }
+}
 ```
