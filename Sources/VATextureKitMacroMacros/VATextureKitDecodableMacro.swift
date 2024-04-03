@@ -30,10 +30,14 @@ public struct DecodableDefaultCase: ExtensionMacro {
             ExtensionDeclSyntax(extendedType: type) {
                 """
                 public init(from decoder: Decoder) throws {
-                    self = try \(type)(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .\(raw: firstCase.name.trimmedDescription)
+                    self = try \(type)(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .\(raw: firstCase.name.trimmedDescription.notShadowed)
                 }
                 """
             },
         ]
     }
+}
+
+private extension String {
+    var notShadowed: String { count > 3 && first == "`" && last == "`" ? String(dropLast().dropFirst()) : self }
 }

@@ -40,6 +40,31 @@ extension VATextureKitMacroTests {
         )
     }
 
+    func test_DecodableDefaultCase_shadowed_expansion() throws {
+        assertMacroExpansion(
+            """
+            @DecodableDefaultCase
+            enum SomeEnum: String, Codable {
+                case `default`
+                case first
+            }
+            """,
+            expandedSource: """
+            enum SomeEnum: String, Codable {
+                case `default`
+                case first
+            }
+
+            extension SomeEnum {
+                public init(from decoder: Decoder) throws {
+                    self = try SomeEnum(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .default
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
     func test_DecodableDefaultCase_withRawValue_expansion() throws {
         assertMacroExpansion(
             """
