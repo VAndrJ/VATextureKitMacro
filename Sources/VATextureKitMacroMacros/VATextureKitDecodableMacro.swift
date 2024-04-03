@@ -29,12 +29,28 @@ public struct DecodableDefaultCase: ExtensionMacro {
         return [
             ExtensionDeclSyntax(extendedType: type) {
                 """
-                public init(from decoder: Decoder) throws {
+                \(raw: enumDecl.modifiers.initModifier)init(from decoder: Decoder) throws {
                     self = try \(type)(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .\(raw: firstCase.name.trimmedDescription.notShadowed)
                 }
                 """
             },
         ]
+    }
+}
+
+private extension DeclModifierListSyntax {
+    var initModifier: String {
+        switch first?.as(DeclModifierSyntax.self)?.name.tokenKind {
+        case let .keyword(keyword):
+            switch keyword {
+            case .public, .open: "public "
+            case .fileprivate: "fileprivate "
+            case .internal: "internal "
+            case .private: "private "
+            default: ""
+            }
+        default: ""
+        }
     }
 }
 

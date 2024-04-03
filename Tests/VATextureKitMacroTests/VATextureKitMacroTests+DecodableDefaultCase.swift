@@ -19,13 +19,13 @@ extension VATextureKitMacroTests {
         assertMacroExpansion(
             """
             @DecodableDefaultCase
-            enum SomeEnum: String, Codable {
+            public enum SomeEnum: String, Codable {
                 case undefined
                 case first
             }
             """,
             expandedSource: """
-            enum SomeEnum: String, Codable {
+            public enum SomeEnum: String, Codable {
                 case undefined
                 case first
             }
@@ -56,7 +56,7 @@ extension VATextureKitMacroTests {
             }
 
             extension SomeEnum {
-                public init(from decoder: Decoder) throws {
+                init(from decoder: Decoder) throws {
                     self = try SomeEnum(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .default
                 }
             }
@@ -69,19 +69,19 @@ extension VATextureKitMacroTests {
         assertMacroExpansion(
             """
             @DecodableDefaultCase
-            enum SomeEnum: Int, Codable {
+            fileprivate enum SomeEnum: Int, Codable {
                 case undefined = -1
                 case first = 0
             }
             """,
             expandedSource: """
-            enum SomeEnum: Int, Codable {
+            fileprivate enum SomeEnum: Int, Codable {
                 case undefined = -1
                 case first = 0
             }
 
             extension SomeEnum {
-                public init(from decoder: Decoder) throws {
+                fileprivate init(from decoder: Decoder) throws {
                     self = try SomeEnum(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .undefined
                 }
             }
