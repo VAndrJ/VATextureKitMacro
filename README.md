@@ -118,3 +118,15 @@ extension SomeEnum {
     }
 }
 ```
+
+
+## Author
+
+
+Volodymyr Andriienko, vandrjios@gmail.com
+
+
+## License
+
+
+VATextureKitMacro is available under the MIT license. See the LICENSE file for more info.
