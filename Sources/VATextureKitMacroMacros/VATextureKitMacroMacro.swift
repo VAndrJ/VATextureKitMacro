@@ -108,11 +108,15 @@ public struct ScrollNodeDistinctLayoutMacro: AccessorMacro {
     }
 }
 
+private let varKeyword: TokenKind = .keyword(.var)
+private let staticKeyword: TokenKind = .keyword(.static)
+private let classKeyword: TokenKind = .keyword(.class)
+
 extension VariableDeclSyntax {
-    public var isVar: Bool { bindingSpecifier.tokenKind == .keyword(.var) }
-    public var isStatic: Bool { modifiers.contains { $0.name.tokenKind == .keyword(.static) } }
-    public var isClass: Bool { modifiers.contains { $0.name.tokenKind == .keyword(.class) } }
-    public var isInstance: Bool { !isClass && !isStatic }
+    public var isVar: Bool { bindingSpecifier.tokenKind == varKeyword }
+    public var isStatic: Bool { modifiers.contains { $0.name.tokenKind == staticKeyword } }
+    public var isClass: Bool { modifiers.contains { $0.name.tokenKind == classKeyword } }
+    public var isInstance: Bool { !(isClass || isStatic) }
 }
 
 public enum VATextureKitMacroError: Error, CustomStringConvertible {

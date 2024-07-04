@@ -18,8 +18,8 @@ public struct DecodableDefaultCase: ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        guard let enumDecl = declaration.as(EnumDeclSyntax.self),
-              let firstCase = enumDecl.memberBlock.members.first?.decl.as(EnumCaseDeclSyntax.self)?.elements.first else {
+        guard declaration is EnumDeclSyntax,
+              let firstCase = declaration.memberBlock.members.first?.decl.as(EnumCaseDeclSyntax.self)?.elements.first else {
             throw VATextureKitMacroError.notEnum
         }
         guard firstCase.parameterClause == nil else {
@@ -29,7 +29,7 @@ public struct DecodableDefaultCase: ExtensionMacro {
         return [
             ExtensionDeclSyntax(extendedType: type) {
                 """
-                \(raw: enumDecl.modifiers.initModifier)init(from decoder: Decoder) throws {
+                \(raw: declaration.modifiers.initModifier)init(from decoder: Decoder) throws {
                     self = try \(type)(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .\(raw: firstCase.name.trimmedDescription.notShadowed)
                 }
                 """
